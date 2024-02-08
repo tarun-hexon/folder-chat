@@ -9,9 +9,8 @@ import Image from 'next/image'
 import { iconSelector } from '../../../../../../config/constants'
 import { Folder, Loader2, Plus, MoreHorizontal } from 'lucide-react';
 import { useAtom } from 'jotai'
-import { chatHistoryAtom, chatTitleAtom, chatSessionIDAtom, folderAddedAtom, folderAtom, folderIdAtom, showAdvanceAtom, userConnectorsAtom, documentSetAtom } from '../../../../../store'
+import { chatHistoryAtom, chatTitleAtom, chatSessionIDAtom, folderAddedAtom, folderAtom, folderIdAtom, showAdvanceAtom, userConnectorsAtom } from '../../../../../store'
 import ReactMarkdown from "react-markdown";
-import supabase from '../../../../../../config/supabse'
 import { useToast } from '../../../../../../components/ui/use-toast'
 import { NewFolder } from '../../../../(dashboard)'
 import { useRouter } from 'next/navigation'
@@ -58,7 +57,6 @@ const ChatWindow = () => {
     const [textFieldDisabled, setTextFieldDisabled] = useState(false);
     const [chatSessionID, setChatSessionID] = useAtom(chatSessionIDAtom);
     const [documentSet, setDocumentSet] = useState([]);
-    // const [documentSet, setDocumentSet] = useAtom(documentSetAtom);
     const [inputDocDes, setInputDocDes] = useState('');
     const [selectedDoc, setSelectedDoc] = useState([]);
     const [docSetOpen, setDocSetOpen] = useState(false);
@@ -87,17 +85,11 @@ const ChatWindow = () => {
             const json = await data.json();
             localStorage.setItem('chatSessionID', json?.chat_session_id)
             setChatSessionID(json?.chat_session_id)
-
-            //await insertChatInDB(null, json?.chat_session_id, folderId);
-
             await sendChatMsgs(userMsgdata, json.chat_session_id, parentMessageId);
             await createChatTitle(json.chat_session_id, null, userMsgdata)
-
-            // router.push(`/chat/${json.chat_session_id}`)
             window.history.pushState('', '', `/workspace/${workspaceid}/chat/${json.chat_session_id}`);
 
         } catch (error) {
-
             console.log('error while creating chat id:', error)
         }
     }
@@ -157,105 +149,11 @@ const ChatWindow = () => {
                 })
             });
             const json = await data.json();
-            //await updateTitle(json.new_name, session_id, userMessage)
             setChatTitle(json.new_name)
         } catch (error) {
             console.log(error)
         }
     }
-
-    async function insertChatInDB(chatTitle, chatID, folderID) {
-
-        try {
-            const id = await getSess();
-            const { data, error } = await supabase
-                .from('chats')
-                .insert({
-                    folder_id: folderID,
-                    user_id: id,
-                    chats: null,
-                    chat_title: chatTitle,
-                    is_active: true,
-                    session_id: chatID,
-                    sharable: false
-                });
-            if (error) {
-                throw error
-            }
-
-        } catch (error) {
-            console.log(error)
-        }
-    };
-
-    // async function updateTitle(value, id) {
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('chats')
-    //             .update({ 'chat_title': value })
-    //             .eq('session_id', id)
-    //             .select()
-    //         if (data.length) {
-    //             setChatHistory(data[0]);
-    //             setChatRenamed(!chatRenamed)
-    //         } else if (error) {
-    //             throw error
-    //         }
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // };
-
-
-    async function updateTitle(newTitle, id, userMessage) {
-
-        try {
-            const response = await fetch(`/api/chat/rename-chat-session`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    "chat_session_id": id,
-                    "name": newTitle || null,
-                    "first_message": userMessage || null
-                })
-
-            })
-            if (response.ok) {
-                const json = await response.json();
-                setChatTitle(json.new_name)
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    };
-
-    async function updateChats(bot, user, oldChat, msgID, obj) {
-        var newMsg = [bot, user, ...oldChat]
-        if (obj) {
-            newMsg = [bot, user, ...oldChat, { 'source': obj }]
-        }
-        try {
-            const { data, error } = await supabase
-                .from('chats')
-                .update({
-                    'chats': JSON.stringify(newMsg),
-                    'message_id': msgID
-                })
-                .eq('session_id', localStorage.getItem('chatSessionID'))
-                .select()
-            if (data?.length) {
-                if (data[0].chats) {
-                    setParentMessageId(data[0]?.message_id)
-                    const msgs = JSON.parse(data[0]?.chats)
-                    setChatMsg(msgs);
-                }
-                setChatHistory(data[0])
-            } else if (error) {
-                throw error
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    };
 
     const resizeTextarea = () => {
         if (folder?.length && !loading) {
@@ -369,22 +267,7 @@ const ChatWindow = () => {
                             const relatedDoc = obj?.context_docs?.top_documents.filter(doc => doc?.db_doc_id === obj?.citations[key[0]])
                             documents = obj?.context_docs?.top_documents;
                             query = obj?.context_docs?.rephrased_query
-                            // await updateChats(
-                            //     {
-                            //         bot: botResponse.current,
-                            //         source: relatedDoc[0],
-                            //     },
-                            //     { user: userMsg },
-                            //     chatMsg,
-                            //     obj.message_id
-                            // );
-                        } else {
-                            // await updateChats(
-                            //     { bot: botResponse.current },
-                            //     { user: userMsg },
-                            //     chatMsg,
-                            //     obj.message_id
-                            // );
+                            
                         }
 
                         finalMessage = obj
@@ -403,11 +286,6 @@ const ChatWindow = () => {
         }
 
         setChatMsg((prev) => [
-            // {
-            //     messageId: finalMessage?.parent_message || null,
-            //     message: userMsg,
-            //     message_type: "user",
-            // },
             {
                 messageId: finalMessage?.message_id || null,
                 message: error || answer,
@@ -465,40 +343,6 @@ const ChatWindow = () => {
         }
     };
 
-    // async function getChatHistory(id) {
-    //     try {
-    //         const { data, error } = await supabase
-    //             .from('chats')
-    //             .select('*')
-    //             .eq('session_id', id);
-    //         if (data[0]?.chats) {
-    //             setParentMessageId(data[0]?.message_id)
-    //             if (folderId === '') {
-    //                 setFolderId(data[0]?.folder_id)
-    //             }
-    //             await getDocSetDetails(data[0]?.folder_id)
-    //             const msgs = JSON.parse(data[0]?.chats)
-    //             setChatMsg(msgs);
-    //             setChatHistory(data[0])
-    //             setChatTitle(data[0]?.chat_title);
-    //             // const ccPairs = await isDocSetExist(data[0]?.folder_id)
-
-    //             // if (ccPairs.length > 0) {
-
-
-    //             // }
-    //         }
-    //         else if (data.length === 0) {
-    //             setChatMsg([]);
-    //         }
-
-    //     } catch (error) {
-    //         // setLoading(false)
-    //         console.log(error)
-    //     }
-    //     // setLoading(false)
-    // };
-
     async function getChatHistoryFromServer(id) {
         await getDocSetDetails(folderId)
         try {
@@ -543,8 +387,6 @@ const ChatWindow = () => {
                     "cc_pair_ids": ccID
                 })
             });
-            
-            //for updating data n supabase we need to implement a logic inside this function to fetch files name without replacing previous name
             await updateDataInDB(ccID);
 
             if (res?.ok === null) {
@@ -561,33 +403,6 @@ const ChatWindow = () => {
         }
     }
 
-    async function updateDataInDB(ccID) {
-
-        //logic for fetching files name from exising connectors but it will replacing previous names if any
-        const names = []
-        for(const obj of userConnectors){
-            for(let i = 0; i < ccID.length; i++){
-                if(obj?.cc_pair_id === ccID[i]){
-                    names.push(obj?.name)
-                }
-            }
-        }
-        const { data, error } = await supabase
-            .from('document_set')
-            .update(
-                { 'cc_pair_id': ccID, 'files_name': names },
-            )
-            .eq('folder_id', folderId)
-            .select()
-
-        if (data?.length) {
-            setDocumentSet(data)
-
-        }
-        if (error) {
-            console.log(error)
-        }
-    };
 
     function handleDocSetID(id) {
         if (selectedDoc.includes(parseInt(id))) {
@@ -600,41 +415,15 @@ const ChatWindow = () => {
 
     }
 
-    // async function getDocSetDetails(folder_id) {
-
-    //     if (!folder_id) {
-    //         setLoading(false);
-    //         return null
-    //     }
-    //     let { data: document_set, error } = await supabase
-    //         .from('document_set')
-    //         .select("*")
-    //         .eq('folder_id', folder_id)
-
-    //     if (document_set?.length > 0) {
-    //         setDocumentSet(document_set)
-    //         setSelectedDoc(document_set[0]?.cc_pair_id)
-    //         setLoading(false)
-    //     } else {
-    //         setDocumentSet([])
-    //         setLoading(false)
-    //         // router.push('/chat/upload')
-    //         // if (folder_id !== null) {
-    //         //     router.push('/chat/upload')
-    //         // }
-    //     }
-
-
-    // };
-
+    
     async function getDocSetDetails(folder_id) {
-        
+        console.log(folder_id)
         if (!folder_id) {
             setLoading(false);
             return null
         }
         
-        const res = await fetch(`/api/manage/document-set-v2?folder_id=${folder_id}`)
+        const res = await fetch(`/api/manage/document-set-v2/${folder_id}`)
         if(res.ok){
             const data = await res.json();
             if(data.length > 0){
@@ -643,25 +432,12 @@ const ChatWindow = () => {
                 setDocumentSet([])
                 router.push(`/workspace/${workspaceid}/chat/upload`)
             }
-            
+        }else{
+            router.push(`/workspace/${workspaceid}/chat/upload`)
         }
         setLoading(false)
-        // if (document_set?.length > 0) {
-        //     setDocumentSet(document_set)
-        //     setSelectedDoc(document_set[0]?.cc_pair_id)
-        //     setLoading(false)
-        // } else {
-        //     setDocumentSet([])
-        //     setLoading(false)
-        //     // router.push('/chat/upload')
-        //     // if (folder_id !== null) {
-        //     //     router.push('/chat/upload')
-        //     // }
-        // }
-
-
+    
     };
-
 
     async function getWorkSpace(){
         const res = await fetch('/api/workspace/list-workspace');
@@ -769,17 +545,20 @@ const ChatWindow = () => {
                     </div>
                 </div>}
             </div>
-            {loading ? <div className='w-full p-2 h-full items-center justify-center '>
-                <Loader2 className='m-auto animate-spin' />
-            </div> :
-
+            {loading ? 
+                <div className='w-full p-2 h-full items-center justify-center '>
+                    <Loader2 className='m-auto animate-spin' />
+                </div> 
+                    :
                 (folder?.length === 0 ?
-                    <div className='w-full h-full flex flex-col justify-center items-center gap-4'>
+                    (userWorkSpaces.length > 0 ? <div className='w-full h-full flex flex-col justify-center items-center gap-4'>
                         <Folder color='#14B8A6' size={'3rem'} className='block animate-pulse' />
                         <p className='text-[16px] leading-5 font-[400]'><strong className='hover:underline hover:cursor-pointer' onClick={() => setOpen(true)}>Create</strong> a Folder and start chating with folder.chat</p>
                         {open && <NewFolder setFolderAdded={setFolderAdded} openMenu={open} setOpenMenu={setOpen} />}
-                        
-                    </div>
+                        {workspaceid == 0 && <Workspace openMenu={openWorkSpace} setOpenMenu={setOpenWorkSpace} showBtn={false}/>}
+                    </div>:
+                    <div className='w-full h-full flex flex-col justify-center items-center gap-4'>
+                    <p className='text-[16px] leading-5 font-[400]'>No workspace found</p></div>)
 
                     :
                     <div className='w-[70%] h-[88%] rounded-[6px] flex flex-col justify-between box-border'>
@@ -963,7 +742,9 @@ const ChatWindow = () => {
 
                             </div>
                         </div>
-                    </div>)}
+                    </div>
+                )
+            }
         </div>
     )
 }

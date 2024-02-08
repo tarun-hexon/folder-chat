@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import supabase from '../../../config/supabse';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
@@ -34,20 +33,6 @@ const UpdatePassword = () => {
             setInputError('Password and confirm password does not match');
             return null
         };
-
-        try {
-            const { data, error } = await supabase.auth.updateUser({ password: password })
-
-            if (error) {
-                setInputError(error.message);
-                throw error
-            };
-            supabase.auth.signOut();
-            setSession(null)
-            router.push('/auth/login')
-        } catch (error) {
-            console.log(error)
-        }
     };
 
     function showPassword(id) {

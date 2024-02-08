@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../components/ui/accordion";
 import threeDot from '../../../public/assets/more-horizontal.svg'
-import supabase from '../../../config/supabse';
-import Image from 'next/image';
 import { useAtom } from 'jotai'
 import { sessionAtom, isPostSignUpCompleteAtom, isPostUserCompleteAtom } from '../../store';
 import { useRouter } from 'next/navigation';
@@ -11,9 +9,7 @@ import { sidebarOptions } from '../../../config/constants';
 import { Dialog, DialogTrigger } from '../../../components/ui/dialog';
 import { Setting } from '../(settings)'
 import { ChevronDown, Check, LogOut } from 'lucide-react';
-import { isUserExist } from '../../../config/lib';
 import { getCurrentUser } from '../../../lib/user';
-import { logout } from '../../../lib/user';
 import { Button } from '../../../components/ui/button';
 import { Workspace } from '../(common)';
 
@@ -49,7 +45,6 @@ const Account = () => {
 
     async function fetchCurrentUser() {
         const user = await getCurrentUser();
-        // console.log(user)
         setCurrentUser(user)
     };
 
@@ -64,19 +59,19 @@ const Account = () => {
             }else{
                 setValue(json?.data[0])
             }
+            setWorkSpaces(json?.data)
         }else{
             setValue('')
         }
-        setWorkSpaces(json?.data)
+        
     }
 
     useEffect(() => {
-        // getWorkspaceName();
         getWorkSpace()
         fetchCurrentUser();
     }, [workspaceid])
     return (
-        <div className='w-full '>
+        workspaces?.length > 0 ? <div className='w-full '>
             <Popover open={open} onOpenChange={setOpen} className='w-full h-40 overflow-y-scroll'>
             <PopoverTrigger asChild>
                 <Button
@@ -118,13 +113,13 @@ const Account = () => {
                         ))}
                     </CommandGroup>
                 </Command>
-                <Workspace openMenu={openWork} setOpenMenu={setOpenWork}/>
+                <Workspace openMenu={openWork} setOpenMenu={setOpenWork} showBtn={true}/>
             </PopoverContent>
             
-            </Popover>
-        </div>
+        </Popover>
+        </div>:<Workspace openMenu={openWork} setOpenMenu={setOpenWork} showBtn={true}/>
         
-    )
+)
 }
 
 export default Account

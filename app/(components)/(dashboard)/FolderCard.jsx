@@ -5,10 +5,9 @@ import Image from 'next/image';
 import threeDot from '../../../public/assets/more-horizontal.svg'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../../components/ui/accordion";
 import { useAtom } from 'jotai';
-import { chatTitleAtom, chatSessionIDAtom, folderIdAtom, sessionAtom, folderAddedAtom, chatHistoryAtom, tempAtom } from '../../store';
+import { chatTitleAtom, chatSessionIDAtom, folderIdAtom, folderAddedAtom, chatHistoryAtom, tempAtom } from '../../store';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
 import { Pencil, Trash2, Check, X, MessageSquare } from 'lucide-react';
-import supabase from '../../../config/supabse';
 import { useParams, useRouter } from 'next/navigation';
 import { Input } from '../../../components/ui/input';
 import fileIcon from '../../../public/assets/Danswer-doc-B.svg';
@@ -18,9 +17,10 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Label } from '../../../components/ui/label';
 import { cn } from '../../../lib/utils';
 import Link from 'next/link';
+import { getCurrentUser } from '../../../lib/user';
 
-const FolderCard = ({ fol }) => {
-    // console.log(fol) 
+const FolderCard = ({ fol }) => { 
+
     const { name, id, workspace_id } = fol
 
     const [chatHistory, setChatHistory] = useAtom(chatHistoryAtom)
@@ -37,7 +37,7 @@ const FolderCard = ({ fol }) => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [documentSet, setDocumentSet] = useState([]);
     const [temp, setTemp] = useAtom(tempAtom)
-
+    const [currentUser, setCurrentUser] = useState({})
     const { workspaceid, chatid } = useParams();
 
     const router = useRouter();
@@ -57,29 +57,6 @@ const FolderCard = ({ fol }) => {
         setPopOpen(false)
     };
 
-
-    async function deleteFolder(fol_id) {
-        for (let i = 0; i < files?.length; i++) {
-            //await deleteChatsBySessionId(files[i]?.session_id)
-        }
-
-        if (documentSet[0]?.doc_set_id) {
-            await fetch(`${process.env.NEXT_PUBLIC_INTEGRATION_IP}/api/manage/admin/document-set/${documentSet[0]?.doc_set_id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-        }
-
-        if (!error) {
-
-            setFolderAdded(!folderAdded)
-            setPopOpen(false)
-        }
-
-    };
-
     function handleFilessOnclick(data) {
 
         setChatSessionID(data.session_id)
@@ -88,29 +65,14 @@ const FolderCard = ({ fol }) => {
 
 
     async function updateTitle(value, id, originalTitle) {
+        console.log(value, id, originalTitle)
         if (value === originalTitle) {
             setIsRenamingChat(false)
             return null
         }
-        try {
-
-            const { data, error } = await supabase
-                .from('chats')
-                .update({ 'chat_title': value })
-                .eq('session_id', id)
-                .select()
-            // console.log(data)
-            if (data.length > 0) {
-                setIsRenamingChat(false)
-                setChatHistory(data[0]);
-                setChatRename(!chatTitle)
-
-            } else if (error) {
-                throw error
-            }
-        } catch (error) {
-            console.log(error)
-        }
+        setIsRenamingChat(false)
+        
+        setChatRename(!chatTitle)
     };
 
     async function deleteChatsFromServer(chat_session_id) {
@@ -126,17 +88,67 @@ const FolderCard = ({ fol }) => {
         }
     };
 
-    // async function updateFolderName(name, id) {
+    async function fetchCurrentUser(){
+        const user = await getCurrentUser();
+        setCurrentUser(user)
+      };
+  
+      
+    async function updateFolderName(name, folder) {
+        // console.log(name, folder, currentUser);
 
-    //     const { data, error } = await supabase
-    //         .from('folders')
-    //         .update({ name: name })
-    //         .eq('id', id)
-    //         .select()
-    //     setFolderAdded(!folderAdded)
-    //     setDialogOpen(false);
-    //     setPopOpen(false);
-    // };
+        // return null
+        
+        try {
+            const { id, workspace_id, description, is_active, chat_enabled } = folder
+            const url = currentUser?.role === "admin" ? '/api/workspace/admin/update-folder' :'/api/workspace/update-folder'
+            const response = await fetch(url, {
+                credentials:'include',
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body:JSON.stringify({
+                    "workspace_folder_id": id,
+                    "workspace_id": workspace_id,
+                    "name": name,
+                    "description": description,
+                    "function": folder.function,
+                    "is_active": is_active,
+                    "chat_enabled": chat_enabled
+                })
+            });
+            if(response.ok){
+                console.log(response)
+                setFolderAdded(!folderAdded)
+                setDialogOpen(false);
+                setPopOpen(false);
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        
+        return null
+    };
+
+    async function deleteFolder(fol_id) {
+        console.log(fol_id);
+        try {
+            const url = currentUser?.role === "admin" ? '/api/workspace/admin/delete-folder' :'/api/workspace/delete-folder' 
+            const response = await fetch(`${url}/${fol_id}`, {
+                credentials:'include',
+                method:'DELETE'
+            });
+            if(response.ok){
+                setFolderAdded(!folderAdded)
+                setPopOpen(false)
+                return null
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        
+    };
 
     async function deleteDocSetFile(data) {
                
@@ -177,11 +189,10 @@ const FolderCard = ({ fol }) => {
 
     async function getDocSetDetails(folder_id) {
         if (!folder_id) {
-            // setLoading(false);
             return null
         }
         
-        const res = await fetch(`/api/manage/document-set-v2?folder_id=${folder_id}`)
+        const res = await fetch(`/api/manage/document-set-v2/${folder_id}`)
         if(res.ok){
             const data = await res.json();
             
@@ -189,7 +200,6 @@ const FolderCard = ({ fol }) => {
                 setDocumentSet(data)
             }else{
                 setDocumentSet([])
-                //router.push(`/workspace/${workspaceid}/chat/upload`)
             }
             
         }
@@ -198,16 +208,14 @@ const FolderCard = ({ fol }) => {
     };
 
     useEffect(() => {
+        fetchCurrentUser();
+    }, []);
+
+    useEffect(() => {
         getDocSetDetails(id);
     }, [chatHistory, chatTitle, id, workspaceid, temp, chatid]);
 
-    // useEffect(() => {
-    //     setIsSelected(chat_id);
-    //     if (chat_id !== 'new' && chat_id) {
-    //         //getFolderId(chat_id);
-    //     }
-    // }, [chat_id]);
-
+ 
     return (
 
         <Accordion type="single" collapsible defaultValue={folderId}>
@@ -255,7 +263,7 @@ const FolderCard = ({ fol }) => {
 
 
                                                     <DialogFooter className={cn('w-full')}>
-                                                        <Button variant={'outline'} className={cn('bg-[#14B8A6] text-[#ffffff] m-auto')} onClick={() => updateFolderName(folNewName, id)}>Update</Button>
+                                                        <Button variant={'outline'} className={cn('bg-[#14B8A6] text-[#ffffff] m-auto')} onClick={() => updateFolderName(folNewName, fol)}>Update</Button>
                                                     </DialogFooter>
 
                                                 </DialogContent>
@@ -299,21 +307,21 @@ const FolderCard = ({ fol }) => {
 
                             </Link>
                             :
-                            files?.map((data, idx) => {
+                            files?.map((data) => {
 
                                 return (
-                                    <Link href={`/chat/${data?.session_id}`} key={data?.id} className={`flex justify-between items-center h-fit rounded-lg p-2 hover:cursor-pointer hover:bg-slate-100 ${chat_id === data.session_id ? 'bg-slate-200' : ''}`} onClick={() => handleFilessOnclick(data)}>
+                                    <Link href={`/chat/${data?.session_id}`} key={data?.id} className={`flex justify-between items-center h-fit rounded-lg p-2 hover:cursor-pointer hover:bg-slate-100 ${chatid === data.session_id ? 'bg-slate-200' : ''}`} onClick={() => handleFilessOnclick(data)}>
                                         <div className='inline-flex gap-1 items-center'>
                                             <div>
                                                 <MessageSquare color='#14B8A6' size={'1rem'} className='hover:cursor-pointer' />
                                             </div>
-                                            <span className={`w-full font-[500] text-sm leading-5 text-ellipsis break-all line-clamp-1 mr-3 text-emphasis ${isRenamingChat && chat_id === data.session_id ? 'hidden' : ''} `} >{data?.chat_title || 'New Chat'}</span>
+                                            <span className={`w-full font-[500] text-sm leading-5 text-ellipsis break-all line-clamp-1 mr-3 text-emphasis ${isRenamingChat && chatid === data.session_id ? 'hidden' : ''} `} >{data?.chat_title || 'New Chat'}</span>
                                             {isRenamingChat ?
-                                                chat_id === data.session_id && <input type='text' value={inputChatName} onChange={(e) => setInputChatName(e.target.value)} className='rounded-md px-1 w-[90%]' />
+                                                chatid === data.session_id && <input type='text' value={inputChatName} onChange={(e) => setInputChatName(e.target.value)} className='rounded-md px-1 w-[90%]' />
                                                 : null
                                             }
                                         </div>
-                                        {chat_id === data.session_id &&
+                                        {chatid === data.session_id &&
                                             (isRenamingChat ? (
                                                 <div className="ml-auto my-auto flex">
                                                     <div
@@ -335,7 +343,7 @@ const FolderCard = ({ fol }) => {
                                             ) : (
                                                 <div className="ml-auto my-auto flex">
                                                     <div
-                                                        title='Edit Name'
+                                                        title='edit name'
                                                         onClick={() => { setInputChatName(data?.chat_title); setIsRenamingChat(true) }}
                                                         className={`hover:bg-black/10 p-1 -m-1 rounded`}
                                                     >

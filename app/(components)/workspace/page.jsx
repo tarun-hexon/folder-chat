@@ -11,7 +11,6 @@ const WorkSpacePage = () => {
       const json = await res.json()
       
       if(json?.data?.length > 0){
-        
           router.push(`/workspace/${json?.data[0].id}/chat/new`)
       }else{
         router.push(`/workspace/0/chat/new`)

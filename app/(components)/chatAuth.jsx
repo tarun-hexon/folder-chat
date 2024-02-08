@@ -17,23 +17,14 @@ export default async function ChatAuth({ children }) {
             getAuthTypeMetadataSS(),
             getCurrentUserSS(),
         ]);
-        // console.log(authTypeMetadata)
+        
     } catch (e) {
         console.log(`Some fetch failed for the login page - ${e}`);
     }
     if (!currentUser) {
         return redirect("/auth/login");
     }
-    async function getWorkSpace(){
-        const res = await fetch('/api/workspace/list-workspace');
-        const json = await res.json()
-        return json.data
-    }
 
-    const workSpaces = getWorkSpace();
-    if(!workSpaces){
-        redirect('/workspace/new')
-    }
     return (
         <div className='w-full flex font-Inter box-border'>
             <div className={`w-[28%] min-h-screen sticky top-0 self-start`}>

@@ -9,39 +9,33 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "../../../components/ui/dialog";
-
+import { useParams  } from 'next/navigation';
+import { useAtom } from 'jotai';
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Button } from "../../../components/ui/button";
-import { useAtom } from 'jotai';
-import { workAddedAtom } from '../../store';
+import { folderIdAtom, workAddedAtom } from '../../store';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '../../../lib/user';
 
-const Workspace = ({ openMenu, setOpenMenu }) => {
+const Workspace = ({ openMenu, setOpenMenu, showBtn }) => {
     
-    // const [open, setOpen] = useState(openMenu);
     const [inputError, setInputError] = useState(false);
     const [workAdded, setWorkAdded] = useAtom(workAddedAtom)
-    const [currentUser, setCurrentUser] = useState({})
-    
+    const [currentUser, setCurrentUser] = useState({});
+    const [folderId, setFolderId] = useAtom(folderIdAtom)
+    const { workspaceid } = useParams()
 
     const router = useRouter()
 
-    const [userInput, setUserInput] = useState({
-        name: '',
-        domain: ''
-    });
+    const [userInput, setUserInput] = useState('');
 
 
     async function createWorkspace() {
         if (userInput.name === '') {
             setInputError('Write some valid workspace name');
             return null
-        } else if (userInput.domain === '') {
-            setInputError('Write some valid domain');
-            return null
-        };
+        }
 
         try {
             const res = await fetch('/api/workspace/create-workspace', {
@@ -54,21 +48,20 @@ const Workspace = ({ openMenu, setOpenMenu }) => {
                     "name": userInput.name,
                     "created_by": currentUser?.id,
                     "is_active": true,
-                    "domain": userInput.domain
                 })
             });
             if (res.ok) {
                 const json = await res.json();
                 setWorkAdded(!workAdded)
                 setOpenMenu(false);
+                setFolderId(null)
                 router.push(`/workspace/${json?.data?.id}/chat/new`)
                 
             }else{
                 const json = await res.json()
                 
                 if(json?.detail){
-                    
-                    setInputError(json?.detail)
+                    setInputError('Contact your Admin to create a new workspace')
                 }
             }
         } catch (error) {
@@ -88,15 +81,13 @@ const Workspace = ({ openMenu, setOpenMenu }) => {
 
     return (
         <Dialog open={openMenu} onOpenChange={() => {
-            setOpenMenu(!openMenu);
+            // (workspaceid !== '0' || !openMenu) && setOpenMenu(!openMenu);
+            setOpenMenu(!openMenu)
             setInputError(false); 
-            setUserInput({
-                name: '',
-                domain: ''
-            });
-            openMenu && setOpenMenu(false)
+            setUserInput('');
+
         }}>
-            {!openMenu && <DialogTrigger className='w-full'>
+            {showBtn && <DialogTrigger className='w-full'>
                 <div className='w-full bg-[#14B8A6] hover:bg-[#14B8A6] opacity-75 hover:opacity-100 shadow-lg text-white rounded-md p-1'>
                     Add Workspace
                 </div>
@@ -119,31 +110,11 @@ const Workspace = ({ openMenu, setOpenMenu }) => {
                             placeholder='Type workplace name'
                             className="col-span-3"
                             value={userInput.name}
-                            onChange={(e) => setUserInput({
-                                ...userInput,
-                                name: e.target.value
-                            })}
+                            onChange={(e) => setUserInput(e.target.value)}
                             autoComplete='off'
                         />
                     </div>
-                    <div className="flex flex-col items-start gap-4">
-                        <Label htmlFor="description" className="font-[500] text-sm leading-5">
-                            Domain Name
-                        </Label>
-                        <Input
-                            id="description"
-                            placeholder='workspace@xyz.com'
-                            className="col-span-3"
-                            value={userInput.domain}
-                            required
-                            onChange={(e) => setUserInput({
-                                ...userInput,
-                                domain: e.target.value
-                            })}
-                            autoComplete='off'
-                        />
-                    </div>
-
+                    
                     <p className='tracking-tight text-xs text-red-400 -mt-1'>{inputError}</p>
                 </div>
                 <DialogFooter>

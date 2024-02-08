@@ -75,7 +75,7 @@ const SideBar = () => {
     return (
         <div className='w-full bg-[#EFF5F5] flex flex-col py-[19px] px-[18px] gap-4 font-Inter relative min-h-screen'>
 
-            <div className='flex flex-col gap-2 w-full p-2'>
+            {currentUser?.email && <div className='flex flex-col gap-2 w-full p-2'>
                 {/* <div className='flex flex-col gap-2 w-full'>
 
                     {sidebarOptions.map(option => {
@@ -123,12 +123,13 @@ const SideBar = () => {
                 </div>
                     </AccordionContent>
                 </AccordionItem>
-            </Accordion>
+                </Accordion>
                 
-            </div>
+            </div>}
+            
             <Account/>
             {!showAdvance ?
-                <Link href={'/advance'} className='w-full flex justify-between items-center bg-[#DEEAEA] p-3 rounded-md hover:cursor-pointer' onClick={() => { setShowAdvance(!showAdvance) }}>
+                workSpaces.length > 0 && <Link href={`/workspace/${workspaceid}/advance`} className='w-full flex justify-between items-center bg-[#DEEAEA] p-3 rounded-md hover:cursor-pointer' onClick={() => { setShowAdvance(!showAdvance) }}>
                     <h1 className='font-[600] text-sm leading-5'>Advanced</h1>
                     <Image src={rightArrow} alt='open' />
                 </Link>
@@ -145,11 +146,9 @@ const SideBar = () => {
                     )
                 })}
             </div>}
-            <div>
-                <NewFolder setFolderAdded={setFolderAdded} openMenu={false} />
-            </div>
 
-
+           {workSpaces.length > 0 && <NewFolder setFolderAdded={setFolderAdded} openMenu={false} />}
+        
         </div>
 
     )

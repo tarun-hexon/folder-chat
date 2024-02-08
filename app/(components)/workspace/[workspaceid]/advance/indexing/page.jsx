@@ -1,18 +1,17 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image';
-import threeLines from '../../../../public/assets/Danswer-All-B.svg'
-import gDriveIcon from '../../../../public/assets/Danswer-google-B.svg'
-import web from '../../../../public/assets/Danswer-web-B.svg'
-import slackIcon from '../../../../public/assets/Danswer-slack-B.svg'
-import confluenceIcon from '../../../../public/assets/Danswer-confluence-B.svg'
-import gitIcon from '../../../../public/assets/Danswer-github-B.svg';
-import fileIcon from '../../../../public/assets/Danswer-doc-B.svg';
-import check from '../../../../public/assets/check-circle.svg';
-import { Dialog, DialogTrigger, DialogContent } from '../../../../components/ui/dialog';
-import { iconSelector } from '../../../../config/constants'
-import { timeAgo } from '../../../../config/time';
-import supabase from '../../../../config/supabse';
+import threeLines from '../../../../../../public/assets/Danswer-All-B.svg'
+import gDriveIcon from '../../../../../../public/assets/Danswer-google-B.svg'
+import web from '../../../../../../public/assets/Danswer-web-B.svg'
+import slackIcon from '../../../../../../public/assets/Danswer-slack-B.svg'
+import confluenceIcon from '../../../../../../public/assets/Danswer-confluence-B.svg'
+import gitIcon from '../../../../../../public/assets/Danswer-github-B.svg';
+import fileIcon from '../../../../../../public/assets/Danswer-doc-B.svg';
+import check from '../../../../../../public/assets/check-circle.svg';
+import { Dialog, DialogTrigger, DialogContent } from '../../../../../../components/ui/dialog';
+import { iconSelector } from '../../../../../../config/constants'
+import { timeAgo } from '../../../../../../config/time';
 import {
     Table,
     TableBody,
@@ -20,11 +19,11 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "../../../../components/ui/table";
-import { cn } from '../../../../lib/utils';
+  } from "../../../../../../components/ui/table";
+import { cn } from '../../../../../../lib/utils';
 import EditIndex from '../(component)/EditIndex';
 import { useAtom } from 'jotai';
-import { sessionAtom, userConnectorsAtom, tempAtom } from '../../../store';
+import { sessionAtom, userConnectorsAtom, tempAtom } from '../../../../../store';
 
   
 

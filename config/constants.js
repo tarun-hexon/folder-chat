@@ -240,26 +240,26 @@ export const advanceOption = [
     title:'Indexing',
     icon: showAllIcon
   },
-  {
-    id:'drive',
-    title:'Google Drive',
-    icon: gDriveIcon
-  },
+  // {
+  //   id:'drive',
+  //   title:'Google Drive',
+  //   icon: gDriveIcon
+  // },
   // {
   //   id:'slack',
   //   title:'Slack',
   //   icon: slackIcon
   // },
-  {
-    id:'confluence',
-    title:'Confluence',
-    icon: confluenceIcon
-  },
-  {
-    id:'github',
-    title:'Github PRs',
-    icon: gitPrsIcon
-  },
+  // {
+  //   id:'confluence',
+  //   title:'Confluence',
+  //   icon: confluenceIcon
+  // },
+  // {
+  //   id:'github',
+  //   title:'Github PRs',
+  //   icon: gitPrsIcon
+  // },
   {
     id:'web',
     title:'Web',

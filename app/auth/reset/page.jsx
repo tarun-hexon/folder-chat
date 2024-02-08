@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import supabase from '../../../config/supabse';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
@@ -28,37 +27,8 @@ const Reset = () => {
   const [otpVerified, setOTPVerified] = useState(false)
   
 
-  async function sendMail() {
-    const { data, error } = await supabase.auth
-      .resetPasswordForEmail(email)
-    if (error) {
-      setError(error.message);
-    }
-    else {
-      setEmailSent(true);
-      setError(false);
-    }
-  };
-
 
   const OtpValidationForm = async () => {
-    try {
-
-      const { data, error } = await supabase.auth.verifyOtp({ email: email, token: otp, type: 'email' })
-
-      if (error) {
-        console.log('Error verifying OTP:', error);
-        setError('Token has expired or is invalid');
-        throw error
-      }
-      if (!error) {
-        setOTPVerified(true);
-        setError(false)
-      }
-
-    } catch (error) {
-      console.error('Error verifying OTP:', error);
-    }
   }
 
   useEffect(()=> {

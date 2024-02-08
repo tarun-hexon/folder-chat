@@ -1,15 +1,14 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image';
-import { Button } from '../../../../components/ui/button';
-import fileIcon from '../../../../public/assets/Danswer-doc-B.svg';
-import { useToast } from '../../../../components/ui/use-toast';
+import { Button } from '../../../../../../components/ui/button';
+import fileIcon from '../../../../../../public/assets/Danswer-doc-B.svg';
+import { useToast } from '../../../../../../components/ui/use-toast';
 import { useDropzone } from 'react-dropzone';
-import { Label } from '../../../../components/ui/label';
-import { deleteConnectorFromTable, fetchAllConnector, fetchIndexing, getSess } from '../../../../lib/helpers';
+import { Label } from '../../../../../../components/ui/label';
+import { deleteConnectorFromTable, fetchAllConnector, fetchIndexing, getSess } from '../../../../../../lib/helpers';
 import { useAtom } from 'jotai';
-import { sessionAtom, userConnectorsAtom } from '../../../store';
-import supabase from '../../../../config/supabse';
+import { sessionAtom, userConnectorsAtom } from '../../../../../store';
 import { Loader, X } from 'lucide-react';
 import {
     Table,
@@ -18,8 +17,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "../../../../components/ui/table";
-import { Input } from '../../../../components/ui/input';
+  } from "../../../../../../components/ui/table";
+import { Input } from '../../../../../../components/ui/input';
 
 const Files = () => {
 
@@ -102,13 +101,14 @@ const Files = () => {
          setUserFiles([])
          setConnectorName('')
           const data = await fetch(`/api/manage/admin/connector/file/upload`, {
+            credentials:'include',
             method: "POST",
             body: formData
           });
-          const json = await data.json();
-          // console.log('upload done', json)
-          // setFilePath(json.file_paths[0]);
-          await connectorRequest(json.file_paths)
+          if(data.ok){
+            const json = await data.json();
+            await connectorRequest(json.file_paths)
+          }
         } catch (error) {
           console.log('error in upload', error)
           setUploading(false)
@@ -124,6 +124,7 @@ const Files = () => {
     async function connectorRequest(path) {
         try {
             const data = await fetch(`/api/manage/admin/connector`, {
+                credentials:'include',
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json"
@@ -142,6 +143,7 @@ const Files = () => {
 
             );
             const json = await data?.json();
+<<<<<<< HEAD:app/(components)/advance/files/page.jsx
 <<<<<<< HEAD
             if(existConnector?.length === 0){
                 await insertDataInConn([json?.id])
@@ -157,6 +159,8 @@ const Files = () => {
             //     await updatetDataInConn(existConnector, json?.id)
             // }
 >>>>>>> folder-dev
+=======
+>>>>>>> folder-dev-3:app/(components)/workspace/[workspaceid]/advance/files/page.jsx
             getCredentials(json?.id)
         } catch (error) {
             console.log('error while connectorRequest :', error)
@@ -202,6 +206,7 @@ const Files = () => {
     async function getCredentials(connectID) {
         try {
             const data = await fetch(`/api/manage/credential`, {
+                credentials:'include',
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
@@ -212,7 +217,6 @@ const Files = () => {
                 })
             });
             const json = await data.json();
-            // setCredentialID(json.id);
             sendURL(connectID, json.id)
         } catch (error) {
             console.log('error while getCredentials:', error);
@@ -311,16 +315,17 @@ const Files = () => {
     async function runOnce(conID, credID){
         try {
             const data = await fetch(`/api/manage/admin/connector/run-once`,{
-            method:'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body:JSON.stringify({
-                "connector_id": conID,
-                "credentialIds": [
-                    credID
-                ]
-            })
+                credentials:'include',
+                method:'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body:JSON.stringify({
+                    "connector_id": conID,
+                    "credentialIds": [
+                        credID
+                    ]
+                })
         })
         } catch (error) {
             console.log('error in runOnce :', error);
@@ -334,7 +339,8 @@ const Files = () => {
     async function sendURL(connectID, credID){
         try {
             const data = await fetch(`/api/manage/connector/${connectID}/credential/${credID}`, {
-            method: 'PUT',
+                credentials:'include',
+                method: 'PUT',
                 headers: {
                     "Content-Type": "application/json",
                     
@@ -351,40 +357,16 @@ const Files = () => {
            
 =======
             await indexStatus()
+<<<<<<< HEAD:app/(components)/advance/files/page.jsx
 >>>>>>> folder-dev
+=======
+            setUploading(false)
+>>>>>>> folder-dev-3:app/(components)/workspace/[workspaceid]/advance/files/page.jsx
         } catch (error) {
             console.log('error while sendURL:', error);
             
             setUploading(false)
         }
-    };
-    
-
-    async function insertDataInConn(newData){
-               
-        const { data, error } = await supabase
-        .from('connectors')
-        .insert(
-          { 'connect_id': newData, 'user_id' : session?.user?.id },
-        )
-        .select()
-        setExistConnector(data[0]?.connect_id);
-        setUploading(false)
-    };
-
-    async function updatetDataInConn(exConn, newData){
-        
-        const allConn = [...exConn, newData]
-        const { data, error } = await supabase
-        .from('connectors')
-        .update(
-          { 'connect_id': allConn },
-        )
-        .eq('user_id', session?.user?.id)
-        .select()
-        setExistConnector(data[0]?.connect_id);
-        
-        setUploading(false)
     };
 
     
@@ -455,7 +437,7 @@ const Files = () => {
 
    
     return (
-        <div className='w-full sticky top-0 self-start h-screen flex flex-col rounded-[6px] gap-5 items-center  box-border text-[#64748B] '>
+        <div className='w-full sticky top-0 self-start min-h-screen flex flex-col rounded-[6px] gap-5 items-center  box-border text-[#64748B] '>
              <div className='w-[80%] rounded-[6px] flex flex-col box-border space-y-2 gap-2 overflow-scroll no-scrollbar h-full px-4 py-10'>
                 <div className='flex justify-start items-center gap-2'>
                     <Image src={fileIcon} alt='file' className='w-5 h-5' />
@@ -500,7 +482,7 @@ const Files = () => {
 
                     </div>
                 </div>
-                <Table className='w-full text-sm overflow-scroll max-h-[60vh]'>
+                <Table className='w-full text-sm overflow-scroll'>
                     <TableHeader className='p-2 '>
                         <TableRow className='border-b p-2 hover:bg-transparent'>
                             <TableHead className="w-96 text-left p-2">File Name</TableHead>

@@ -66,25 +66,11 @@ const Upload = () => {
         title: "Write a valid name for files identification!"
       });
     }
-    // if (context.contextName.split('-').length > 1) {
-    //   return toast({
-    //     variant: 'destructive',
-    //     title: `Remove '-' from Context Name`
-    //   });
-    // }
-
-    // if (doc_set_name.length > 0) {
-    //   return toast({
-    //     variant: 'destructive',
-    //     title: "Context Name Already Exist !"
-    //   });
-    // }
     setUploading(true)
     try {
       const formData = new FormData();
       let isZip = false
       files?.forEach((file) => {
-        //console.log(file.type === "application/zip")
         if (file.type === "application/zip") {
           setUploading(false)
           isZip = true
@@ -460,9 +446,8 @@ const Upload = () => {
       setLoading(false);
       return null
     }
-    const res = await fetch(`/api/manage/document-set-v2?folder_id=${folder_id}`)
+    const res = await fetch(`/api/manage/document-set-v2/${folder_id}`)
     if (res.ok) {
-
       const data = await res.json();
       console.log(data)
       //console.log(data[0].cc_pair_descriptors.map(item => item.id))
@@ -472,9 +457,9 @@ const Upload = () => {
         setDocumentSet([])
         // router.push(`/workspace/${workspaceid}/chat/upload`)
       }
-      setLoading(false)
+      
     };
-
+    setLoading(false)
   };
 
 
@@ -498,10 +483,7 @@ const Upload = () => {
   }, [folder]);
 
   useEffect(() => {
-    if (folderId) {
-      getDocSetDetails(folderId);
-
-    }
+    getDocSetDetails(folderId)
 
   }, [folderId]);
 
@@ -550,7 +532,7 @@ const Upload = () => {
 
               <div>
                 <Label className='text-start' htmlFor='context'>Name of Context</Label>
-                <Input type='text' placeholder='Name Should Be Unique' id='context' value={context.contextName} onChange={(e) => setContext({ ...context, 'contextName': e.target.value })} />
+                <Input type='text' placeholder='Name should be unique' id='context' value={context.contextName} onChange={(e) => setContext({ ...context, 'contextName': e.target.value })} />
               </div>
               <div>
                 <Label className='text-start' htmlFor='context'>File Name</Label>
@@ -558,7 +540,7 @@ const Upload = () => {
               </div>
               <div>
                 <Label className='text-start' htmlFor='context'>Description</Label>
-                <Input type='text' placeholder='write a short description' id='context' value={context?.description} onChange={(e) => setContext({ ...context, description: e.target.value })} />
+                <Input type='text' placeholder='Write a short description' id='context' value={context?.description} onChange={(e) => setContext({ ...context, description: e.target.value })} />
               </div>
             </div> :
             <div className='w-full text-start space-y-2 mb-2'>
@@ -581,24 +563,14 @@ const Upload = () => {
                 <div className='w-full text-center'>
                   <p className='font-[400] leading-6 text-[15px] opacity-[80%]'>Click to upload or drag and drop</p>
                   <p className='opacity-[50%] text-sm leading-6'>PDF & TXT</p>
-                  {/* <p className='opacity-[50%] text-sm leading-6'>Max Size 1MB</p> */}
                 </div>
-
-                {/* <div
-
-                  {...getInputProps()}
-                  type='file'
-                  id='upload-files'
-                  accept='.pdf, .doc, .docx, .xls, .xlsx'
-                  style={{ display: 'none' }}
-                />   */}
               </div>
               {userConnectors?.length > 0 &&
                 <div className='w-full text-sm leading-5 text-center space-y-2'>
                   <p className='font-[500]'>OR</p>
                   <Dialog open={d_open} onOpenChange={() => { setSelectedDoc(documentSet[0]?.cc_pair_descriptors?.length > 0 ? documentSet[0]?.cc_pair_descriptors.map(cc => cc.id) : []); setD_open(!d_open) }} className='fixed max-h-52 overflow-x-scroll no-scrollbar' >
                     <DialogTrigger asChild>
-                      <p className='font-[600] p-2 border w-[70%] m-auto rounded-sm shadow-sm bg-[#EFF5F5] hover:cursor-pointer' onClick={() => setD_open(true)}>Select From Existing Files</p>
+                      <p className='font-[600] p-2 border w-[70%] m-auto rounded-sm shadow-sm bg-[#EFF5F5] hover:cursor-pointer' onClick={() => setD_open(true)}>Select from existing files</p>
                     </DialogTrigger>
                     <DialogContent>
                       {!dialogLoader ?

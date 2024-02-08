@@ -1,20 +1,19 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image';
-import { Input } from '../../../../components/ui/input';
-import { Button } from '../../../../components/ui/button';
+import { Input } from '../../../../../../components/ui/input';
+import { Button } from '../../../../../../components/ui/button';
 
-import webIcon from '../../../../public/assets/Danswer-web-B.svg'
+import webIcon from '../../../../../../public/assets/Danswer-web-B.svg'
 
-import check from '../../../../public/assets/check-circle.svg';
-import trash from '../../../../public/assets/trash-2.svg';
+import check from '../../../../../../public/assets/check-circle.svg';
+import trash from '../../../../../../public/assets/trash-2.svg';
 
-import { Label } from '../../../../components/ui/label';
-import { useToast } from '../../../../components/ui/use-toast';
-import { deleteConnectorFromTable, fetchAllConnector, getSess } from '../../../../lib/helpers';
+import { Label } from '../../../../../../components/ui/label';
+import { useToast } from '../../../../../../components/ui/use-toast';
+import { deleteConnectorFromTable, fetchAllConnector, getSess } from '../../../../../../lib/helpers';
 import { useAtom } from 'jotai';
-import { sessionAtom, userConnectorsAtom, showAdvanceAtom } from '../../../store';
-import supabase from '../../../../config/supabse';
+import { userConnectorsAtom } from '../../../../../store';
 import {
     Table,
     TableBody,
@@ -22,7 +21,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-  } from "../../../../components/ui/table";
+  } from "../../../../../../components/ui/table";
 import { Loader, Loader2 } from 'lucide-react';
 
 const Web = () => {
@@ -32,7 +31,6 @@ const Web = () => {
     const [connectorId, setConnectorId] = useState(null);
     const [credentialID, setCredentialID] = useState(null);
     const [allConnectors, setAllConnectors] = useAtom(userConnectorsAtom);
-    const [session, setSession] = useAtom(sessionAtom);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [existConnector ,setExistConnector] = useState([]);
@@ -45,7 +43,7 @@ const Web = () => {
         if (url === '') {
             return toast({
                 variant: 'destructive',
-                description: 'Please Provide a valid URL'
+                description: 'Please provide a valid url'
             })
         } else {
             setUploading(true)
@@ -56,7 +54,8 @@ const Web = () => {
 
     async function connectorRequest(baseName) {
         try {
-            const data = await fetch(`${process.env.NEXT_PUBLIC_INTEGRATION_IP}/api/manage/admin/connector`, {
+            const data = await fetch(`/api/manage/admin/connector`, {
+                credentials:'include',
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json"
@@ -75,54 +74,31 @@ const Web = () => {
             }
                 
             );
-            const json = await data.json();
-            setConnectorId(json.id)
-            if(existConnector.length === 0){
-                
-                await insertDataInConn([json.id])
+            if(data.ok){
+                const json = await data.json();
+                setConnectorId(json.id)
+                await getCredentials(json?.id, baseName)
             }else{
-                await updatetDataInConn(existConnector, json.id)
+                const json = await data.json();
+                if(json?.detail){
+                    setUploading(false);
+                    setWebUrl('')
+                    return toast({
+                        variant: 'destructive',
+                        description: 'Contact your Admin to create a connector'
+                    })
+                }
             }
-            await getCredentials(json?.id, baseName)
         } catch (error) {
             console.log('error while connectorRequest :', error)
         }        
     };
 
-    async function insertDataInConn(newData){
-        
-        const { data, error } = await supabase
-        .from('connectors')
-        .insert(
-          { 'connect_id': newData, 'user_id' : session?.user?.id },
-        )
-        .select()
-        // console.log(data)
-        // console.log(error)
-        setExistConnector(data[0]?.connect_id);
-       
-    };
-
-    async function updatetDataInConn(exConn, newData){
-        
-        const allConn = [...exConn, newData]
-        const { data, error } = await supabase
-        .from('connectors')
-        .update(
-          { 'connect_id': allConn},
-        )
-        .eq('user_id', session?.user?.id)
-        .select()
-        console.log(data)
-        console.log(error)
-        setExistConnector(data[0]?.connect_id);
-        
-    };
-
     async function getCredentials(id, baseName){
         try {
-            const data = await fetch(`${process.env.NEXT_PUBLIC_INTEGRATION_IP}/api/manage/credential`, {
-            method: 'POST',
+            const data = await fetch(`/api/manage/credential`, {
+                credentials:'include',
+                method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
                     
@@ -130,9 +106,8 @@ const Web = () => {
                 body: JSON.stringify(
                     {
                         "credential_json": {
-                            "id":"12"
                         },
-                        "admin_public": false
+                        "admin_public": true
                     }
                 )
             });
@@ -149,13 +124,14 @@ const Web = () => {
         
         if(connectID === null || credID === null || url === '') return null
         try {
-            const data = await fetch(`${process.env.NEXT_PUBLIC_INTEGRATION_IP}/api/manage/connector/${connectID}/credential/${credID}`, {
-            method: 'PUT',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ 'name':url })
-            });
+            const data = await fetch(`/api/manage/connector/${connectID}/credential/${credID}`, {
+                credentials:'include',
+                method: 'PUT',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 'name':url })
+                });
             const json = await data?.json();
             setWebUrl('')
             setUploading(false)

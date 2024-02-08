@@ -6,7 +6,6 @@ import { Button } from "../../../components/ui/button";
 import Google from "../../../public/assets/google.svg";
 import Image from "next/image";
 import eye_icon from '../../../public/assets/eye_icon.svg';
-import supabase from '../../../config/supabse';
 import { useAtom } from 'jotai';
 import { darkModeAtom, sessionAtom } from '../../store';
 import Link from 'next/link';
@@ -32,96 +31,7 @@ const Signup = ( { isSignup, shouldVerify } ) => {
   const [loading, setLoading] = useState(true)
   const router = useRouter();
 
-  // async function signUpFunction() {
-  //   if(userInput.password !== userInput.confirm_password){
-  //     setInputError('Password and confirm password does not match');
-  //     return null
-  //   }else{
-  //     setInputError(false);
-  //   }
-  //   try {
-  //     const { data, error } = await supabase.auth.signUp({
-  //       email: userInput.email,
-  //       password: userInput.password,
-  //       options: {
-  //         data: {
-  //           onBoarding: false,
-  //         },
-  //       },
-  //       });
-  //       if (error) {
-  //         setInputError(error.message)
-  //       }else if (data.user?.identities?.length === 0) {
-  //         setInputError('User already registered');
-  //       }
-  //       else {
-        
-  //       setEmailSent('Check Your Email For Confirmation Mail')
-  //     }
-  //     console.log(error)
-  //   } catch (error) {
-  //     setInputError(error?.message)
-  //     console.error('Error logging in:', error?.message);
-  //   }
-  // };
 
-  // async function signUpFunction() {
-  //   if(userInput.password !== userInput.confirm_password){
-  //     setInputError('Password and confirm password does not match');
-  //     return null
-  //   }else{
-  //     setInputError(false);
-  //   }
-  //   try {
-  //     const jsonData = JSON.stringify({
-  //       'email': userInput.email,
-  //       'username': userInput.email,
-  //       'password': userInput.password
-  //   });
-
-  //   const response = await axios.post('/api/auth/register', jsonData, {
-  //       credentials: "include",
-  //       headers: {
-  //           'Content-Type': 'application/json'
-  //       }
-  //   })
-  //   if(response.status === 201){
-  //     localStorage.setItem('userInfo', response?.data)
-      
-  //     setEmailSent('Check Your Email For Confirmation Mail')
-  //   }
-  //   console.log(response)
-  //   } catch (error) {
-  //     setInputError(error?.message)
-  //     const errorDetail = error?.response?.data?.detail
-  //     let errorMsg = "Unknown error";
-  //     if (errorDetail === "REGISTER_USER_ALREADY_EXISTS") {
-  //       errorMsg = "An account already exists with the specified email.";
-  //     }
-  //     setInputError(errorMsg)
-  //     console.log(error)
-  //   }
-  // };
-
-  async function googleSignIn() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-        redirectTo : `${process.env.NEXT_PUBLIC_URL}/chat/new`
-      },
-    });
-    if (error) {
-      setInputError(error.message);
-    } else {
-      
-    }
-  };
-
-  
   const signUpFunction = async () => {
     if (!disabled) {
         // let isSignup = true
@@ -131,7 +41,7 @@ const Signup = ( { isSignup, shouldVerify } ) => {
                 await requestEmailVerification(userInput.email);
                 router.push("/auth/waiting-on-verification");
             } else {
-                router.push("/chat/new");
+                router.push("/workspace");
             }
         }
         else {
