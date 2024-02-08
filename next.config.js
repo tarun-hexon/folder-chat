@@ -17,7 +17,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://3.101.38.63/api/:path*", // Proxy to Backend
+        destination: "https://backend-dev.folder.chat/api/:path*", // Proxy to Backend
       },
     ];
   },
@@ -38,19 +38,19 @@ const nextConfig = {
     return defaultRedirects.concat([
       {
         source: "/api/chat/send-message:params*",
-        destination: "http://3.101.38.63/api/chat/send-message:params*", // Proxy to Backend
+        destination: "https://backend-dev.folder.chat/api/chat/send-message:params*", // Proxy to Backend
         permanent: true,
       },
       {
         source: "/api/query/stream-answer-with-quote:params*",
         destination:
-          "http://3.101.38.63/api/query/stream-answer-with-quote:params*", // Proxy to Backend
+          "https://backend-dev.folder.chat/api/query/stream-answer-with-quote:params*", // Proxy to Backend
         permanent: true,
       },
       {
         source: "/api/query/stream-query-validation:params*",
         destination:
-          "http://3.101.38.63/api/query/stream-query-validation:params*", // Proxy to Backend
+          "https://backend-dev.folder.chat/api/query/stream-query-validation:params*", // Proxy to Backend
         permanent: true,
       },
     ]);
